@@ -1,36 +1,43 @@
-# nur-packages-template
-
-**A template for [NUR](https://github.com/nix-community/NUR) repositories**
-
-## Setup
-
-1. Click on [Use this template](https://github.com/nix-community/nur-packages-template/generate) to start a repo based on this template. (Do _not_ fork it.)
-2. Add your packages to the [pkgs](./pkgs) directory and to
-   [default.nix](./default.nix)
-   * Remember to mark the broken packages as `broken = true;` in the `meta`
-     attribute, or travis (and consequently caching) will fail!
-   * Library functions, modules and overlays go in the respective directories
-3. Choose your CI: Depending on your preference you can use github actions (recommended) or [Travis ci](https://travis-ci.com).
-   - Github actions: Change your NUR repo name and optionally add a cachix name in [.github/workflows/build.yml](./.github/workflows/build.yml) and change the cron timer
-     to a random value as described in the file
-   - Travis ci: Change your NUR repo name and optionally your cachix repo name in
-   [.travis.yml](./.travis.yml). Than enable travis in your repo. You can add a cron job in the repository settings on travis to keep your cachix cache fresh
-5. Change your travis and cachix names on the README template section and delete
-   the rest
-6. [Add yourself to NUR](https://github.com/nix-community/NUR#how-to-add-your-own-repository)
-
-## README template
-
 # nur-packages
 
-**My personal [NUR](https://github.com/nix-community/NUR) repository**
+我的个人 [NUR](https://github.com/nix-community/NUR) 软件包仓库，支持通过 Nix Flake 使用。
 
-<!-- Remove this if you don't use github actions -->
-![Build and populate cache](https://github.com/<YOUR-GITHUB-USER>/nur-packages/workflows/Build%20and%20populate%20cache/badge.svg)
+## 软件包
 
-<!--
-Uncomment this if you use travis:
+| 包名 | 说明 | 平台 |
+| --- | --- | --- |
+| `baidunetdisk` | 百度网盘 Linux 客户端（非自由软件） | `x86_64-linux` |
+| `example-package` | NUR 模板附带的示例包 | 取决于构建平台 |
 
-[![Build Status](https://travis-ci.com/<YOUR_TRAVIS_USERNAME>/nur-packages.svg?branch=master)](https://travis-ci.com/<YOUR_TRAVIS_USERNAME>/nur-packages)
--->
-[![Cachix Cache](https://img.shields.io/badge/cachix-<YOUR_CACHIX_CACHE_NAME>-blue.svg)](https://<YOUR_CACHIX_CACHE_NAME>.cachix.org)
+百度网盘使用上游的 Debian 安装包，通过 FHS 环境运行。启动脚本会传入 `--no-sandbox`。
+
+## 使用
+
+启用 Nix 的 `nix-command` 和 `flakes` 实验功能后，可以直接构建或运行百度网盘：
+
+```sh
+NIXPKGS_ALLOW_UNFREE=1 nix build --impure github:freegoxing/nur-packages#baidunetdisk
+NIXPKGS_ALLOW_UNFREE=1 nix run --impure github:freegoxing/nur-packages#baidunetdisk
+```
+
+也可以在 Flake 中添加输入：
+
+```nix
+inputs.nur-packages.url = "github:freegoxing/nur-packages";
+```
+
+随后从 `inputs.nur-packages.packages.x86_64-linux.baidunetdisk` 引用软件包。该 Flake 自行导入 nixpkgs；求值百度网盘时可设置 `NIXPKGS_ALLOW_UNFREE=1` 并使用 `--impure`。
+
+## 开发
+
+```sh
+nix develop                 # 进入开发环境并启用 Git hooks
+nix fmt                     # 格式化 Nix 和 shell 文件
+nix flake check             # 运行仓库检查
+```
+
+开发环境、格式化器和检查目前配置在 `x86_64-linux` 上。百度网盘的版本更新脚本位于 [`pkgs/baidunetdisk/update.sh`](./pkgs/baidunetdisk/update.sh)；GitHub Actions 会定期检查更新、构建软件包并创建更新 PR。
+
+## 许可证
+
+仓库代码采用 [MIT 许可证](./LICENSE)。各软件包的许可由其自身的 `meta.license` 指定；百度网盘为非自由软件。
