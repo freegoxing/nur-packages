@@ -2,7 +2,7 @@
 # shellcheck shell=bash
 set -euo pipefail
 
-NEW_VERSION=$(curl -fsSL 'https://aur.archlinux.org/rpc/?v=5&type=info&arg[]=baidunetdisk-electron' |
+NEW_VERSION=$(curl -fsSL --connect-timeout 15 --max-time 60 'https://aur.archlinux.org/rpc/?v=5&type=info&arg[]=baidunetdisk-electron' |
   jq -er '.results[0].Version | select(type == "string")' | sed 's/-[^-]*$//')
 if [[ ! $NEW_VERSION =~ ^[0-9]+(\.[0-9]+)+$ ]]; then
   echo "Invalid upstream version: $NEW_VERSION" >&2

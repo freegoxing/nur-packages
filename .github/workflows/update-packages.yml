@@ -13,6 +13,7 @@ permissions:
 jobs:
   update:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
 
@@ -22,15 +23,42 @@ jobs:
           extra_nix_config: |
             experimental-features = nix-command flakes
 
+      - name: Prepare update tools
+        timeout-minutes: 10
+        run: |
+          set -euo pipefail
+
+          nix build nixpkgs#nix-update \
+            --no-link \
+            --print-build-logs \
+            --log-format raw
+
+          nix shell nixpkgs#nix-update \
+            --print-build-logs \
+            --log-format raw \
+            -c nix-update --version
+
       - name: Update packages
+        timeout-minutes: 25
         env:
           NIXPKGS_ALLOW_UNFREE: '1'
+          PYTHONUNBUFFERED: '1'
         run: |
-          nix shell nixpkgs#nix-update nixpkgs#curl nixpkgs#jq -c bash -euc '
-            for package in baidunetdisk lceda-pro; do
-              nix-update "$package" --flake --use-update-script
-            done
-          '
+          set -euo pipefail
+
+          for package in baidunetdisk lceda-pro; do
+            echo "::group::Update $package"
+            date -u
+
+            timeout --kill-after=30s 10m \
+              nix shell nixpkgs#nix-update \
+                --print-build-logs \
+                --log-format raw \
+                -c nix-update "$package" --flake --use-update-script
+
+            date -u
+            echo "::endgroup::"
+          done
 
       - name: Build changed packages
         env:

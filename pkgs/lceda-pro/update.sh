@@ -2,7 +2,7 @@
 # shellcheck shell=bash
 set -euo pipefail
 
-page=$(curl -fsSL 'https://lceda.cn/page/download')
+page=$(curl -fsSL --connect-timeout 15 --max-time 60 'https://lceda.cn/page/download')
 versions=$(printf '%s\n' "$page" | grep -oE 'lceda-pro-linux-x64-[0-9]+(\.[0-9]+)+\.zip' | sort -u)
 if [[ $(printf '%s\n' "$versions" | wc -l) -ne 1 || -z $versions ]]; then
   echo "Expected exactly one Linux x64 download on the official page" >&2
