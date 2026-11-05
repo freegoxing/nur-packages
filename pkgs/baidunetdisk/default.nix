@@ -119,7 +119,6 @@ buildFHSEnv {
   '';
   passthru.updateScript = [ (toString ./update.sh) ];
   meta = {
-    maintainers = with lib.maintainers; [ xddxdd ];
     description = "Baidu Netdisk";
     homepage = "https://pan.baidu.com/";
     platforms = [ "x86_64-linux" ];
