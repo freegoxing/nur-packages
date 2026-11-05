@@ -123,6 +123,7 @@ buildFHSEnv {
     homepage = "https://pan.baidu.com/";
     platforms = [ "x86_64-linux" ];
     license = lib.licenses.unfreeRedistributable;
+    sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
     mainProgram = "baidunetdisk";
   };
 }

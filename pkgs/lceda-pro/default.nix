@@ -113,6 +113,7 @@ stdenv.mkDerivation (finalAttrs: {
     homepage = "https://lceda.cn/";
     license = lib.licenses.unfree;
     platforms = [ "x86_64-linux" ];
+    sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
     mainProgram = "lceda-pro";
   };
 })
