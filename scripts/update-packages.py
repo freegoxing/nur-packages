@@ -7,6 +7,7 @@ import json
 import re
 import subprocess
 import tempfile
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -16,8 +17,23 @@ SOURCE_PATTERN = r'(\bsrc\s*=\s*fetchurl\s*\{[^}]*?\bhash\s*=\s*")([^"\n]+)(";)'
 
 
 def curl(url, output):
-    subprocess.run(['curl', '-fsSL', '--globoff', '--retry', '2', '--connect-timeout', '15',
-                    '--max-time', '600', '--output', str(output), url], check=True)
+    print(f'Downloading: {url}', flush=True)
+    cmd = ['curl', '-fsSL', '--globoff', '--retry', '2', '--connect-timeout', '15',
+           '--max-time', '300', '--output', str(output), url]
+    start = time.monotonic()
+    process = subprocess.Popen(cmd)
+    while True:
+        try:
+            returncode = process.wait(timeout=15)
+            break
+        except subprocess.TimeoutExpired:
+            size = output.stat().st_size if output.exists() else 0
+            elapsed = int(time.monotonic() - start)
+            print(f'Downloading... {size / 1024 / 1024:.1f} MiB received, {elapsed}s elapsed', flush=True)
+    if returncode != 0:
+        raise subprocess.CalledProcessError(returncode, cmd)
+    size = output.stat().st_size
+    print(f'Download completed: {size / 1024 / 1024:.1f} MiB', flush=True)
 
 
 def parse_version(package, data):
