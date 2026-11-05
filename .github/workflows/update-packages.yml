@@ -3,8 +3,8 @@ name: Update packages
 on:
   workflow_dispatch:
   schedule:
-    # 11:17 Beijing time
-    - cron: '17 3 * * *'
+    # Monday at 11:17 Beijing time
+    - cron: '17 3 * * 1'
 
 permissions:
   contents: write

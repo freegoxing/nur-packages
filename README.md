@@ -22,7 +22,7 @@ nix fmt                     # 格式化 Nix 和 shell 文件
 nix flake check             # 运行仓库检查
 ```
 
-开发环境、格式化器和检查目前配置在 `x86_64-linux` 上。百度网盘和嘉立创EDA专业版分别使用 [`pkgs/baidunetdisk/update.sh`](./pkgs/baidunetdisk/update.sh) 和 [`pkgs/lceda-pro/update.sh`](./pkgs/lceda-pro/update.sh) 检查版本。GitHub Actions 每天在同一任务中检查两个包，仅构建发生变化的包，并为更新创建一个 PR；可以在 Actions 页面手动触发。
+开发环境、格式化器和检查目前配置在 `x86_64-linux` 上。百度网盘和嘉立创EDA专业版分别使用 [`pkgs/baidunetdisk/update.sh`](./pkgs/baidunetdisk/update.sh) 和 [`pkgs/lceda-pro/update.sh`](./pkgs/lceda-pro/update.sh) 检查版本。GitHub Actions 每周一在同一任务中检查两个包，仅构建发生变化的包，并为更新创建一个 PR；可以在 Actions 页面手动触发。
 
 ## 许可证
 
