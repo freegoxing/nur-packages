@@ -24,7 +24,6 @@
   systemdLibs,
   runCommandLocal,
   stdenv,
-  undmg,
   at-spi2-core,
   autoPatchelfHook,
   writeShellScript,
@@ -76,170 +75,137 @@ let
   meta = {
     homepage = "https://im.qq.com/index/";
     description = "Messaging app";
-    platforms = [
-      "aarch64-darwin"
-      "aarch64-linux"
-      "x86_64-linux"
-    ];
+    platforms = [ "x86_64-linux" ];
     license = lib.licenses.unfree;
     sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
-    maintainers = with lib.maintainers; [
-      bot-wxt1221
-      fee1-dead
-      prince213
-      ryan4yin
-    ];
   };
 in
-if stdenv.hostPlatform.isDarwin then
-  stdenv.mkDerivation {
-    inherit
-      pname
-      version
-      src
-      passthru
-      meta
-      ;
+stdenv.mkDerivation {
+  inherit
+    pname
+    version
+    src
+    passthru
+    meta
+    ;
 
-    nativeBuildInputs = [ undmg ];
-    sourceRoot = ".";
+  nativeBuildInputs = [
+    autoPatchelfHook
+    makeShellWrapper
+    wrapGAppsHook3
+    dpkg
+  ];
 
-    installPhase = ''
-      runHook preInstall
+  buildInputs = [
+    alsa-lib
+    at-spi2-core
+    cups
+    glib
+    gtk3
+    libdrm
+    libpulseaudio
+    libgcrypt
+    libkrb5
+    libgbm
+    nss
+    libxdamage
+  ];
 
-      mkdir -p $out/Applications
-      cp -a QQ.app $out/Applications
+  dontWrapGApps = true;
 
-      runHook postInstall
-    '';
-  }
-else
-  stdenv.mkDerivation {
-    inherit
-      pname
-      version
-      src
-      passthru
-      meta
-      ;
+  runtimeDependencies = map lib.getLib [
+    systemdLibs
+    libkrb5
+  ];
 
-    nativeBuildInputs = [
-      autoPatchelfHook
-      makeShellWrapper
-      wrapGAppsHook3
-      dpkg
-    ];
+  installPhase =
+    let
+      versionConfigScript = writeShellScript "qq-version-config.sh" ''
+        set -e
 
-    buildInputs = [
-      alsa-lib
-      at-spi2-core
-      cups
-      glib
-      gtk3
-      libdrm
-      libpulseaudio
-      libgcrypt
-      libkrb5
-      libgbm
-      nss
-      libxdamage
-    ];
+        if [[ -z "$INTERNAL_VERSION" ]]; then
+          echo "INTERNAL_VERSION is not set, skipping version config management"
+          exit 0
+        fi
 
-    dontWrapGApps = true;
+        CONFIG_PATH="$HOME/.config/QQ/versions/config.json"
+        CONFIG_DIR="$(dirname "$CONFIG_PATH")"
 
-    runtimeDependencies = map lib.getLib [
-      systemdLibs
-      libkrb5
-    ];
+        if [[ ! -f "$CONFIG_PATH" ]]; then
+          if [[ ! -d "$CONFIG_DIR" ]]; then
+            echo "Creating QQ version config directory at $CONFIG_DIR"
+            mkdir -p "$CONFIG_DIR"
+          fi
+        else
+          baseVersion=$(sed -n 's/.*"baseVersion"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$CONFIG_PATH")
+          currentVersion=$(sed -n 's/.*"curVersion"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$CONFIG_PATH")
 
-    installPhase =
-      let
-        versionConfigScript = writeShellScript "qq-version-config.sh" ''
-          set -e
+          # Here we assert that the buildId is the same as baseVersion's buildId and skip checking it separately
+          if [[ "$baseVersion" == "$INTERNAL_VERSION" && "$currentVersion" == "$INTERNAL_VERSION" ]]; then
+            echo "Version config file already up to date"
 
-          if [[ -z "$INTERNAL_VERSION" ]]; then
-            echo "INTERNAL_VERSION is not set, skipping version config management"
+            if [[ -w "$CONFIG_PATH" ]]; then
+              echo "Making existing version config file read-only"
+              chmod u-w "$CONFIG_PATH"
+            fi
+
             exit 0
           fi
 
-          CONFIG_PATH="$HOME/.config/QQ/versions/config.json"
-          CONFIG_DIR="$(dirname "$CONFIG_PATH")"
-
-          if [[ ! -f "$CONFIG_PATH" ]]; then
-            if [[ ! -d "$CONFIG_DIR" ]]; then
-              echo "Creating QQ version config directory at $CONFIG_DIR"
-              mkdir -p "$CONFIG_DIR"
-            fi
-          else
-            baseVersion=$(sed -n 's/.*"baseVersion"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$CONFIG_PATH")
-            currentVersion=$(sed -n 's/.*"curVersion"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$CONFIG_PATH")
-
-            # Here we assert that the buildId is the same as baseVersion's buildId and skip checking it separately
-            if [[ "$baseVersion" == "$INTERNAL_VERSION" && "$currentVersion" == "$INTERNAL_VERSION" ]]; then
-              echo "Version config file already up to date"
-
-              if [[ -w "$CONFIG_PATH" ]]; then
-                echo "Making existing version config file read-only"
-                chmod u-w "$CONFIG_PATH"
-              fi
-
-              exit 0
-            fi
-
-            if [[ ! -w "$CONFIG_PATH" ]]; then
-              echo "Making existing version config file writable temporarily"
-              chmod u+w "$CONFIG_PATH"
-            fi
+          if [[ ! -w "$CONFIG_PATH" ]]; then
+            echo "Making existing version config file writable temporarily"
+            chmod u+w "$CONFIG_PATH"
           fi
+        fi
 
-          cat > "$CONFIG_PATH" << EOF
-          {
-            "_comment": "This file is managed by the qq-version-config.sh to disable auto updates, do not edit it manually. Set the `disableAutoUpdate` option to false to disable this behavior.",
-            "baseVersion": "$INTERNAL_VERSION",
-            "curVersion": "$INTERNAL_VERSION",
-            "buildId": "''${INTERNAL_VERSION##*-}"
-          }
-          EOF
+        cat > "$CONFIG_PATH" << EOF
+        {
+          "_comment": "This file is managed by the qq-version-config.sh to disable auto updates, do not edit it manually. Set the `disableAutoUpdate` option to false to disable this behavior.",
+          "baseVersion": "$INTERNAL_VERSION",
+          "curVersion": "$INTERNAL_VERSION",
+          "buildId": "''${INTERNAL_VERSION##*-}"
+        }
+        EOF
 
-          chmod u-w "$CONFIG_PATH"
-        '';
-      in
-      ''
-        runHook preInstall
-
-        mkdir -p $out/bin
-        cp -r opt $out/opt
-        cp -r usr/share $out/share
-        substituteInPlace $out/share/applications/qq.desktop \
-          --replace-fail "Exec=/opt/QQ/qq" "Exec=qq" \
-          --replace-fail "Icon=/usr/share/icons/hicolor/512x512/apps/qq.png" "Icon=qq"
-        makeShellWrapper $out/opt/QQ/qq $out/bin/qq \
-          --prefix XDG_DATA_DIRS : "$GSETTINGS_SCHEMAS_PATH" \
-          --prefix LD_PRELOAD : "${lib.makeLibraryPath [ libssh2 ]}/libssh2.so.1" \
-          --prefix LD_LIBRARY_PATH : "${
-            lib.makeLibraryPath [
-              libGL
-              libuuid
-            ]
-          }" \
-          --add-flags "\''${NIXOS_OZONE_WL:+\''${WAYLAND_DISPLAY:+--ozone-platform=wayland --enable-features=WaylandWindowDecorations --enable-wayland-ime=true --wayland-text-input-version=3}}" \
-          --add-flags ${lib.escapeShellArg commandLineArgs} \
-          "''${gappsWrapperArgs[@]}" ${lib.optionalString disableAutoUpdate ''
-            \
-            --set INTERNAL_VERSION "$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' $out/opt/QQ/resources/app/package.json)" \
-            --run '${versionConfigScript} || true'
-          ''}
-
-        # https://aur.archlinux.org/cgit/aur.git/commit/?h=linuxqq&id=f7644776ee62fa20e5eb30d0b1ba832513c77793
-        rm -r $out/opt/QQ/resources/app/libssh2.so.1
-
-        # https://github.com/microcai/gentoo-zh/commit/06ad5e702327adfe5604c276635ae8a373f7d29e
-        ln -s ${libayatana-appindicator}/lib/libayatana-appindicator3.so \
-          $out/opt/QQ/libappindicator3.so
-
-        ln -s ${libnotify}/lib/libnotify.so \
-          $out/opt/QQ/libnotify.so
-
-        runHook postInstall
+        chmod u-w "$CONFIG_PATH"
       '';
-  }
+    in
+    ''
+      runHook preInstall
+
+      mkdir -p $out/bin
+      cp -r opt $out/opt
+      cp -r usr/share $out/share
+      substituteInPlace $out/share/applications/qq.desktop \
+        --replace-fail "Exec=/opt/QQ/qq" "Exec=qq" \
+        --replace-fail "Icon=/usr/share/icons/hicolor/512x512/apps/qq.png" "Icon=qq"
+      makeShellWrapper $out/opt/QQ/qq $out/bin/qq \
+        --prefix XDG_DATA_DIRS : "$GSETTINGS_SCHEMAS_PATH" \
+        --prefix LD_PRELOAD : "${lib.makeLibraryPath [ libssh2 ]}/libssh2.so.1" \
+        --prefix LD_LIBRARY_PATH : "${
+          lib.makeLibraryPath [
+            libGL
+            libuuid
+          ]
+        }" \
+        --add-flags "\''${NIXOS_OZONE_WL:+\''${WAYLAND_DISPLAY:+--ozone-platform=wayland --enable-features=WaylandWindowDecorations --enable-wayland-ime=true --wayland-text-input-version=3}}" \
+        --add-flags ${lib.escapeShellArg commandLineArgs} \
+        "''${gappsWrapperArgs[@]}" ${lib.optionalString disableAutoUpdate ''
+          \
+          --set INTERNAL_VERSION "$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' $out/opt/QQ/resources/app/package.json)" \
+          --run '${versionConfigScript} || true'
+        ''}
+
+      # https://aur.archlinux.org/cgit/aur.git/commit/?h=linuxqq&id=f7644776ee62fa20e5eb30d0b1ba832513c77793
+      rm -r $out/opt/QQ/resources/app/libssh2.so.1
+
+      # https://github.com/microcai/gentoo-zh/commit/06ad5e702327adfe5604c276635ae8a373f7d29e
+      ln -s ${libayatana-appindicator}/lib/libayatana-appindicator3.so \
+        $out/opt/QQ/libappindicator3.so
+
+      ln -s ${libnotify}/lib/libnotify.so \
+        $out/opt/QQ/libnotify.so
+
+      runHook postInstall
+    '';
+}

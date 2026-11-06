@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | `baidunetdisk` | 百度网盘 Linux 客户端（非自由软件） | `x86_64-linux` |
 | `lceda-pro` | 嘉立创EDA专业版 Linux 客户端（非自由软件） | `x86_64-linux` |
-| `qq` | QQ 客户端（非自由软件） | `x86_64-linux`、`aarch64-linux`、`aarch64-darwin` |
+| `qq` | QQ 客户端（非自由软件） | `x86_64-linux` |
 
 
 百度网盘使用上游的 Debian 安装包，通过 FHS 环境运行。启动脚本会传入 `--no-sandbox`。
