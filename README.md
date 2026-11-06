@@ -8,11 +8,14 @@
 | --- | --- | --- |
 | `baidunetdisk` | 百度网盘 Linux 客户端（非自由软件） | `x86_64-linux` |
 | `lceda-pro` | 嘉立创EDA专业版 Linux 客户端（非自由软件） | `x86_64-linux` |
+| `qq` | QQ 客户端（非自由软件） | `x86_64-linux`、`aarch64-linux`、`aarch64-darwin` |
 
 
 百度网盘使用上游的 Debian 安装包，通过 FHS 环境运行。启动脚本会传入 `--no-sandbox`。
 
 嘉立创EDA专业版使用官方 Linux 客户端，保留上游的发行许可文件。首次使用可能需要导入官方激活文件。
+
+QQ 基于 nixpkgs 的打包方式，构建时通过腾讯签名接口获取下载地址；版本和哈希由本仓库独立维护。腾讯可能下架旧版本，已安装的 Home Manager generation 会保留对应的本地 Nix store 闭包；清理旧 generation 后无法保证旧版本仍可重新下载。本仓库的公开 Cachix 构建流程排除非自由软件，不会缓存 QQ。
 
 ## 开发
 
@@ -22,8 +25,8 @@ nix fmt                     # 格式化 Nix 和 shell 文件
 nix flake check             # 运行仓库检查
 ```
 
-开发环境、格式化器和检查目前配置在 `x86_64-linux` 上。百度网盘和嘉立创EDA专业版分别使用 [`pkgs/baidunetdisk/update.sh`](./pkgs/baidunetdisk/update.sh) 和 [`pkgs/lceda-pro/update.sh`](./pkgs/lceda-pro/update.sh) 检查版本。GitHub Actions 每周一在同一任务中检查两个包，仅构建发生变化的包，并为更新创建一个 PR；可以在 Actions 页面手动触发。
+开发环境、格式化器和检查目前配置在 `x86_64-linux` 上。各包使用各自目录中的 `update.sh` 检查版本。GitHub Actions 每周一检查版本并为更新创建 PR，可以在 Actions 页面手动触发；更新工作流不执行完整构建。
 
 ## 许可证
 
-仓库代码采用 [MIT 许可证](./LICENSE)。各软件包的许可由其自身的 `meta.license` 指定；百度网盘和嘉立创EDA专业版为非自由软件。
+仓库代码采用 [MIT 许可证](./LICENSE)。各软件包的许可由其自身的 `meta.license` 指定；百度网盘、嘉立创EDA专业版和 QQ 为非自由软件。

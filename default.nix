@@ -23,6 +23,7 @@
 
   baidunetdisk = pkgs.callPackage ./pkgs/baidunetdisk { };
   lceda-pro = pkgs.callPackage ./pkgs/lceda-pro { };
+  qq = pkgs.callPackage ./pkgs/qq { };
   # some-qt5-package = pkgs.libsForQt5.callPackage ./pkgs/some-qt5-package { };
   # ...
 }

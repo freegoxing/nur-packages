@@ -42,11 +42,12 @@ jobs:
               echo "::endgroup::"
             done
           '
+          timeout --kill-after=30s 7m bash pkgs/qq/update.sh
 
       - name: Review changes
         run: |
           git diff --check
-          git diff -- pkgs/baidunetdisk/default.nix pkgs/lceda-pro/default.nix
+          git diff -- pkgs/baidunetdisk/default.nix pkgs/lceda-pro/default.nix pkgs/qq/sources.nix
 
       - name: Create pull request
         uses: peter-evans/create-pull-request@v8
@@ -62,3 +63,4 @@ jobs:
           add-paths: |
             pkgs/baidunetdisk/default.nix
             pkgs/lceda-pro/default.nix
+            pkgs/qq/sources.nix
