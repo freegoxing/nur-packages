@@ -3,8 +3,8 @@ name: Update packages
 on:
   workflow_dispatch:
   schedule:
-    # Monday at 11:17 Beijing time
-    - cron: '17 3 * * 1'
+    # Daily at 11:17 Beijing time
+    - cron: '17 3 * * *'
 
 permissions:
   contents: write
@@ -40,6 +40,11 @@ jobs:
               export UPDATE_NIX_OLD_VERSION
               timeout --kill-after=30s 7m bash "pkgs/$package/update.sh"
               echo "::endgroup::"
+              if git diff --quiet -- "pkgs/$package"; then
+                printf "%-12s %s\n" "$package" "No changes (see group for details)"
+              else
+                printf "%-12s %s\n" "$package" "Update available"
+              fi
             done
           '
 
