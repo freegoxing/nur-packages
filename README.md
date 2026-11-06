@@ -27,6 +27,8 @@ nix flake check             # 运行仓库检查
 
 开发环境、格式化器和检查目前配置在 `x86_64-linux` 上。各包使用各自目录中的 `update.sh` 检查版本。GitHub Actions 每周一检查版本并为更新创建 PR，可以在 Actions 页面手动触发；更新工作流不执行完整构建。
 
+自动创建 PR 需要在 GitHub 仓库的 **Settings → Actions → General → Workflow permissions** 中启用 **Allow GitHub Actions to create and approve pull requests**。QQ 更新会跳过比当前版本更旧的官方版本。
+
 ## 许可证
 
 仓库代码采用 [MIT 许可证](./LICENSE)。各软件包的许可由其自身的 `meta.license` 指定；百度网盘、嘉立创EDA专业版和 QQ 为非自由软件。

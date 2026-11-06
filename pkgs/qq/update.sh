@@ -16,10 +16,16 @@ sign_url() {
 
 # linux
 
-linux_payload=$(curl https://cdn-go.cn/qq-web/im.qq.com_new/latest/rainbow/linuxConfig.js | grep -oP "var params= \K\{.*\}(?=;)")
-linux_version=$(jq -r .version <<<"$linux_payload")-$(jq -r .updateDate <<<"$linux_payload")
+linux_payload=$(curl -fsSL --connect-timeout 15 --max-time 60 https://cdn-go.cn/qq-web/im.qq.com_new/latest/rainbow/linuxConfig.js | grep -oP "var params= \K\{.*\}(?=;)")
+linux_version=$(jq -er '.version | select(type == "string" and test("^[0-9]+(\\.[0-9]+)+$"))' <<<"$linux_payload")-$(jq -er '.updateDate | select(type == "string" and test("^[0-9]{4}-[0-9]{2}-[0-9]{2}$"))' <<<"$linux_payload")
 
-linux_x86_64_url=$(jq -r .x64DownloadUrl.deb <<<"$linux_payload")
+if [[ -n ${UPDATE_NIX_OLD_VERSION:-} && $linux_version != "$UPDATE_NIX_OLD_VERSION" &&
+  $(printf '%s\n%s\n' "$linux_version" "$UPDATE_NIX_OLD_VERSION" | sort -V | head -n 1) == "$linux_version" ]]; then
+  echo "Skipping QQ downgrade from $UPDATE_NIX_OLD_VERSION to $linux_version" >&2
+  exit 0
+fi
+
+linux_x86_64_url=$(jq -er '.x64DownloadUrl.deb | select(type == "string" and startswith("https://"))' <<<"$linux_payload")
 
 linux_x86_64_hash=$(nix-prefetch-url "$(sign_url "$linux_x86_64_url")")
 
@@ -37,3 +43,8 @@ cat >sources.nix <<EOF
   };
 }
 EOF
+if [[ -n ${UPDATE_NIX_OLD_VERSION:-} && $linux_version == "$UPDATE_NIX_OLD_VERSION" ]]; then
+  echo "Checked QQ version: $linux_version"
+else
+  echo "Updated QQ version: ${UPDATE_NIX_OLD_VERSION:-unknown} -> $linux_version"
+fi

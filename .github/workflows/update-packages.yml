@@ -33,7 +33,7 @@ jobs:
         run: |
           set -euo pipefail
           nix shell nixpkgs#nix-update -c bash -euc '
-            for package in baidunetdisk lceda-pro; do
+            for package in baidunetdisk lceda-pro qq; do
               echo "::group::Update $package"
               export UPDATE_NIX_ATTR_PATH="$package"
               UPDATE_NIX_OLD_VERSION=$(nix eval --impure --raw ".#$package.version")
@@ -42,7 +42,6 @@ jobs:
               echo "::endgroup::"
             done
           '
-          timeout --kill-after=30s 7m bash pkgs/qq/update.sh
 
       - name: Review changes
         run: |
