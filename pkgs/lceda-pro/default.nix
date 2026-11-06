@@ -46,11 +46,11 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "lceda-pro";
-  version = "4.1.93";
+  version = "4.1.97";
 
   src = fetchurl {
     url = "https://image.lceda.cn/files/lceda-pro-linux-x64-${finalAttrs.version}.zip";
-    hash = "sha256-GDWpjMWJRSKdMT6HnXhfoDjcLRCoXqShmYkk5tz1+Pk=";
+    hash = "sha256-EGEzdXdCBIAJlzsDT/JFWnAia2lQJB7WXKM0zybxkHE=";
   };
 
   nativeBuildInputs = [
