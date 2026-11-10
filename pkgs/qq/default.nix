@@ -59,14 +59,12 @@ let
         )
         curl -fL --retry 3 -o "$out" "$signedUrl"
       '';
-  sources = import ./sources.nix { };
-  source =
-    sources.${stdenv.hostPlatform.system}
-      or (throw "Unsupported system: ${stdenv.hostPlatform.system}");
   pname = "qq";
-  version = source.version;
+  # Source updated by update.sh.
+  version = "3.2.34-2026-09-24";
   src = fetchqq {
-    inherit (source) url hash;
+    url = "https://qqdl.gtimg.cn/qqfile/QQNTV2/9.9.36/release/9ee04bef/QQ_3.2.34_260924_amd64_01.deb";
+    hash = "sha256-Q2xl4d0oQi4SiiHL3bX+Ti5sB51/J/7CVB4BTTjMM24=";
   };
   passthru = {
     # nixpkgs-update: no auto update

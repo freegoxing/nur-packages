@@ -22,6 +22,7 @@
   overlays = import ./overlays; # nixpkgs overlays
 
   baidunetdisk = pkgs.callPackage ./pkgs/baidunetdisk { };
+  chatgpt = pkgs.callPackage ./pkgs/chatgpt/package.nix { };
   lceda-pro = pkgs.callPackage ./pkgs/lceda-pro { };
   qq = pkgs.callPackage ./pkgs/qq { };
   # some-qt5-package = pkgs.libsForQt5.callPackage ./pkgs/some-qt5-package { };
