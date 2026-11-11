@@ -68,11 +68,11 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "chatgpt";
-  version = "26.1029.61003";
+  version = "26.1106.51428";
 
   src = fetchurl {
     url = "https://persistent.oaistatic.com/codex-app-prod/linux/deb/pool/main/c/chatgpt/chatgpt_${finalAttrs.version}_amd64.deb";
-    hash = "sha256-86+K/sXSXCKOtvTb2c/eD+p8peS0Kv8BRaHe0nPQGy0=";
+    hash = "sha256-g1anghkwsTW3QTR/rMvEPhaStEJMPqtxCpr1bAvrsTU=";
   };
 
   strictDeps = true;
